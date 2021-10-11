@@ -13,7 +13,7 @@ from Mechanism.Bidding.Strategic_Bidding.BiddingStrategy import BiddingStrategy
 #INPUT ENTER for SVPM and CWPM
 
 # input_manipulations = [-0.1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-# absolute_margin_manipulations = [1.5, 2.5]., 
+# absolute_margin_manipulations = [1.5, 2.5].,
 # input_manipulations = [0.025, 0.05, 0.075]
 # absolute_margin_manipulations = [0.1, 0.5, 1, 2, 3, 10, 100]
 relative_margin_manipulations = [0.1, 0.15, 0.2]
