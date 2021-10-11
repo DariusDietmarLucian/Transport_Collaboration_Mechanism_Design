@@ -15,11 +15,18 @@ class StrategicBidder:
     """
 
     def calculate_valuation_own_requests(self, requests):
+
         true_valuation = self.profit_func(requests=requests, deletion=True)
 
         self.last_true_input_bid_valuation = true_valuation
 
-        if self.configuration.strategy == BiddingStrategy.TRUTHFUL or self.configuration.strategy == BiddingStrategy.CONSPIRING:
+        # if len(requests) == 0:
+        #     return None
+
+        if self.configuration.strategy == BiddingStrategy.TRUTHFUL \
+                or self.configuration.strategy == BiddingStrategy.CONSPIRING\
+                or self.configuration.strategy == BiddingStrategy.HIGH_ABS_ISO\
+                or self.configuration.strategy == BiddingStrategy.BID_MANIPULATION_REL:
             return true_valuation
 
         elif self.configuration.strategy == BiddingStrategy.INPUT_MANIPULATION:
@@ -30,18 +37,28 @@ class StrategicBidder:
             manipulated_valuation = true_valuation + abs(true_valuation) * self.configuration.input_bid_multiple
             return manipulated_valuation
 
-        elif self.configuration.strategy == BiddingStrategy.BID_MANIPULATION_REL:
-            manipulated_valuation = true_valuation + abs(true_valuation) * self.configuration.relative_margin
-            return manipulated_valuation
+        # elif self.configuration.strategy == BiddingStrategy.BID_MANIPULATION_REL:
+        #     manipulated_valuation = true_valuation + abs(true_valuation) * self.configuration.relative_margin
+        #     return manipulated_valuation
 
     def calculate_valuation_other_requests(self, requests):
 
         true_valuation = self.profit_func(requests=requests, deletion=False)
 
-        if true_valuation is None:
-            return None
 
-        if self.configuration.strategy == BiddingStrategy.HIGH_ABS:
+        if true_valuation is None:
+            # if len(requests) == 0:
+                # print("debug: return NONE")
+            return None
+        # if true_valuation is None:
+        #     return -999999
+
+        # if len(requests) == 0:
+        #     return None
+            # print("debug: ah ya")
+
+        if self.configuration.strategy == BiddingStrategy.HIGH_ABS \
+                or self.configuration.strategy == BiddingStrategy.HIGH_ABS_ISO:
             last_true_input_bid_valuation = self.get_last_true_input_valuation()
             manipulated_valuation = true_valuation + abs(last_true_input_bid_valuation) * self.configuration.input_bid_multiple
             return manipulated_valuation

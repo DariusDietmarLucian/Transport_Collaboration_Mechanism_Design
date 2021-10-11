@@ -10,16 +10,18 @@ from Participants.Carrier.Profitability import Profitability
 from Mechanism.Bundle_Generation.BundleGeneratorStrategy import BundleGeneratorStrategy
 from Mechanism.Payment_Calculation.ProfitSharingStrategy import ProfitSharingStrategy
 
-parent_directory = None  # Insert your parent_directory for saving data here (for saving input instances and results)
-r101_filepath = None  # Insert your filepath for the r101 data here (if you want to use the Berger&Bierwirth Instance Generation)
+# parent_directory = None  # Insert your parent_directory for saving data here (for saving input instances and results)
+# r101_filepath = None  # Insert your filepath for the r101 data here (if you want to use the Berger&Bierwirth Instance Generation)
+parent_directory = "/Users/dariusdresp/Documents/Software/PythonProjects/Auction_based_transport_collaboration"
+r101_filepath = "/Users/dariusdresp/Documents/Software/PythonProjects/Auction_based_transport_collaboration/r101"
 
 # -----Instances
 
 instance_generation_configuration = dict(
     competition_level=CompetitionLevel.MEDIUM,
-    num_carrier_requests=6,
-    num_runs=5,
-    num_carriers=3,
+    num_carrier_requests=7,
+    num_runs=50,
+    num_carriers=5,
     strategy=GenerationStrategy.Custom
 )
 
@@ -37,8 +39,8 @@ bundle_generator_configuration = dict(
 
 ga_bundling_generator_configuration = dict(
     population_size=100,
-    number_bundles=500,
-    elite_share=0.3,
+    number_bundles=600,
+    elite_share=0.25,
     rounds=40,
     cross_over_prob=0.3,
     mutate_prob=0.3
@@ -64,15 +66,14 @@ payment_calculator_configuration = dict(
 # -----Participants Settings
 
 mechanism_manager_configuration = dict(
-    num_requests=3,
-    num_retries=2,
-    is_conspiring=False,
+    num_requests=2,
+    num_retries=1
 )
 
 carrier_configuration = dict(
     max_capacity=1.3,
-    min_num_requests=3,
-    profitability=Profitability.MEDIUM_PROFITABILITY
+    min_num_requests=4,
+    profitability=Profitability.HIGH_PROFITABILITY
 )
 
 # -----Routing Settings

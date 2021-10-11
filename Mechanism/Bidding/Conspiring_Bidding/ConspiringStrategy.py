@@ -6,3 +6,4 @@ class ConspiringStrategy(enum.Enum):
     INPUT_ENTER = 3
     BID_KICKOUT = 4
     DESTROY_WEIGHT = 5
+    WIN_LOW = 6

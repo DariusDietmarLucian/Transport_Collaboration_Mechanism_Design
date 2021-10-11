@@ -60,13 +60,11 @@ class MechanismManager:
         bid_matrix = self.__collect_bids(input_bids=input_bids, bundles=bundles)
 
         # ( 3.5) conspire with carrier 0 )
-        if self.configuration.is_conspiring:
-
-            new_input_bid, new_bundle_bids = carriers[0].submit_conspired_bids(input_bids, bundles, bid_matrix,
-                                                                              self.configuration.payment_calculator_configuration.strategy)
-            if new_input_bid is not None and new_bundle_bids is not None:
-                input_bids[0] = new_input_bid
-                bid_matrix[0] = new_bundle_bids
+        new_input_bid, new_bundle_bids = carriers[0].submit_conspired_bids(input_bids, bundles, bid_matrix,
+                                                                          self.configuration.payment_calculator_configuration.strategy)
+        if new_input_bid is not None and new_bundle_bids is not None:
+            input_bids[0] = new_input_bid
+            bid_matrix[0] = new_bundle_bids
 
         # 4) determine the best bundle allocation
         determinator = WinnerDeterminator(requests=requests, bundles=bundles, bid_matrix=bid_matrix)

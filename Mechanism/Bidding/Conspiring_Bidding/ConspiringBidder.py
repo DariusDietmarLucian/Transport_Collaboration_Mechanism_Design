@@ -36,19 +36,60 @@ class ConspiringBidder:
         return new_input_bids, new_bundle_bids
 
     @staticmethod
-    def __gen_input_bid_max(input_bid, winning_bids_value, determinator):
+    def __calc_optimal_input_bid_increment(input_bid, winning_bids_value, determinator):
 
         forced_winning_bids = determinator.determine_winners(enforced_bids=[input_bid])
         forced_winning_bids_value = sum([bid.get_valuation() for bid in forced_winning_bids])
 
-        value_difference = winning_bids_value - forced_winning_bids_value - 1
+        return winning_bids_value - forced_winning_bids_value - 1
 
-        if value_difference < 0:
+
+    @staticmethod
+    def __gen_input_bid_max(input_bid, winning_bids_value, determinator):
+
+        input_bid_increment = ConspiringBidder.__calc_optimal_input_bid_increment(input_bid, winning_bids_value, determinator)
+
+        # if input_bid_increment < 0:
+        if input_bid_increment < 0 or input_bid.get_valuation() == 0:
             return input_bid
         else:
-            new_input_bid = Bid(bundle=input_bid.get_bundle(), valuation=input_bid.get_valuation() + value_difference,
-                                player_id=input_bid.get_carrier_id())
+
+            new_input_bid = Bid(bundle=input_bid.get_bundle(), valuation=input_bid.get_valuation() + input_bid_increment,
+                                carrier_id=input_bid.get_carrier_id())
             return new_input_bid
+
+    @staticmethod
+    def __gen_winning_bids_low(bundle_bids, input_bid, winning_bids_value, determinator):
+
+        bids_decrement = ConspiringBidder.__calc_optimal_input_bid_increment(input_bid, winning_bids_value, determinator)
+
+
+        if bids_decrement < 0:
+            return bundle_bids
+        else:
+            new_bundle_bids = []
+
+            for bid in bundle_bids:
+
+                if bid == input_bid or not bid.get_valuation():
+
+                    new_bundle_bids.append(bid)
+                    # if bid.get_valuation() == 0:
+                    #     new_bid = Bid(bundle=bid.get_bundle(),
+                    #                   valuation= -bids_decrement,
+                    #                   carrier_id=bid.get_carrier_id())
+                    #     new_bundle_bids.append(new_bid)
+                    # else:
+                    #     new_bundle_bids.append(bid)
+                else:
+                    new_bid = Bid(bundle=bid.get_bundle(),
+                              valuation=bid.get_valuation() - bids_decrement,
+                              carrier_id=bid.get_carrier_id())
+                    new_bundle_bids.append(new_bid)
+
+            return new_bundle_bids
+
+
 
     @staticmethod
     def __gen_input_bid_enter(input_bid, input_bids, winning_bids, determinator):
@@ -60,11 +101,11 @@ class ConspiringBidder:
 
         value_difference = winning_bids_value - alt_winning_bids_value + 1
 
-        new_share = PaymentCalculator.calculate_egalitarian_share(player_id=input_bid.get_carrier_id(), input_bids=input_bids,
+        new_share = PaymentCalculator.calculate_egalitarian_share(carrier_id=input_bid.get_carrier_id(), input_bids=input_bids,
                                                                   winning_bids=alt_winning_bids, requires_contribution=True)
 
         new_input_bid = Bid(bundle=input_bid.get_bundle(), valuation=input_bid.get_valuation() - value_difference,
-                            player_id=input_bid.get_carrier_id())
+                            carrier_id=input_bid.get_carrier_id())
 
         new_input_bids = [new_input_bid if bid == input_bid else bid for bid in input_bids]
         new_collaboration_gain = alt_winning_bids_value - sum([bid.get_valuation() for bid in new_input_bids])
@@ -76,8 +117,8 @@ class ConspiringBidder:
         else:
             return input_bid, winning_bids
 
-    @staticmethod
-    def __gen_bids_destroy(player_id, other_player_ids, input_bids, winning_bids, determinator, bundle_bids):
+    # @staticmethod
+    def __gen_bids_desdtroy(player_id, other_player_ids, input_bids, winning_bids, determinator, bundle_bids):
 
         winning_bids_value = sum([bid.get_valuation() for bid in winning_bids])
         input_bid = next(bid for bid in input_bids if bid.get_carrier_id() == player_id)
@@ -119,7 +160,7 @@ class ConspiringBidder:
 
                     destruction_bid = Bid(bundle=bid.get_bundle(),
                                           valuation=bid.get_valuation() + value_difference,
-                                          player_id=player_id)
+                                          carrier_id=player_id)
 
                     if max_reachable_valuation >= (winning_bids_value - 1):
                         break
@@ -130,12 +171,120 @@ class ConspiringBidder:
         return destruction_bids
 
     @staticmethod
+    def __gen_bids_destroy(player_id, other_player_ids, input_bids, winning_bids, determinator, bundle_bids):
+
+        winning_bids_value = sum([bid.get_valuation() for bid in winning_bids])
+        input_bid = next(bid for bid in input_bids if bid.get_carrier_id() == player_id)
+        winning_bid = next(bid for bid in winning_bids if bid.get_carrier_id() == player_id)
+
+        destruction_bids = []
+
+        # max_reachable_valuation = None
+        # o_input_bid = next(bid for bid in input_bids if bid.get_carrier_id() == o_player_id)
+        # destruction_bid = None
+        # set_o_requests = set(o_input_bid.get_requests())
+
+        for bid in bundle_bids:
+
+            if bid == input_bid or bid == winning_bid or not bid.get_valuation():
+                continue
+
+            # set_requests = set(bid.get_requests())
+
+            # if len(set_o_requests.intersection(set_requests)) > 0:
+            #     continue
+
+            alt_winning_bids = determinator.determine_winners(enforced_bids=[bid])
+
+            if alt_winning_bids is None:
+                continue
+
+            alt_winning_bids_value = sum([bid.get_valuation() for bid in alt_winning_bids])
+
+            # other_winning_bids = determinator.determine_winners(enforced_bids=[bid])
+            # other_winning_bids_value = sum([bid.get_valuation() for bid in other_winning_bids])
+
+            value_difference = winning_bids_value - alt_winning_bids_value - 1
+            # reachable_valuation = alt_winning_bids_value + value_difference
+            destruction_bid = Bid(bundle=bid.get_bundle(),
+                                  valuation=bid.get_valuation() + value_difference,
+                                  carrier_id=player_id)
+            destruction_bids.append(destruction_bid)
+
+        #     if max_reachable_valuation is None or reachable_valuation > max_reachable_valuation:
+        #         max_reachable_valuation = reachable_valuation
+        #
+        #         destruction_bid = Bid(bundle=bid.get_bundle(),
+        #                               valuation=bid.get_valuation() + value_difference,
+        #                               carrier_id=player_id)
+        #
+        #         if max_reachable_valuation >= (winning_bids_value - 1):
+        #             break
+        #
+        # if destruction_bid is not None:
+        #     destruction_bids.append(destruction_bid)
+
+        return destruction_bids
+
+    # def __gen_bids_contribute(player_id, other_player_ids, input_bids, winning_bids, determinator, bundle_bids):
+    #
+    #     winning_bids_value = sum([bid.get_valuation() for bid in winning_bids])
+    #     input_bid = next(bid for bid in input_bids if bid.get_carrier_id() == player_id)
+    #     winning_bid = next(bid for bid in winning_bids if bid.get_carrier_id() == player_id)
+    #
+    #     destruction_bids = []
+    #
+    #     for o_player_id in other_player_ids:
+    #         max_reachable_valuation = None
+    #         o_input_bid = next(bid for bid in input_bids if bid.get_carrier_id() == o_player_id)
+    #         destruction_bid = None
+    #         set_o_requests = set(o_input_bid.get_requests())
+    #
+    #         for bid in bundle_bids:
+    #
+    #             if bid == input_bid or bid == winning_bid or not bid.get_valuation():
+    #                 continue
+    #
+    #             set_requests = set(bid.get_requests())
+    #
+    #             if len(set_o_requests.intersection(set_requests)) > 0:
+    #                 continue
+    #
+    #             alt_winning_bids = determinator.determine_winners(enforced_bids=[o_input_bid, bid])
+    #
+    #             if alt_winning_bids is None:
+    #                 continue
+    #
+    #             alt_winning_bids_value = sum([bid.get_valuation() for bid in alt_winning_bids])
+    #
+    #             other_winning_bids = determinator.determine_winners(enforced_bids=[bid])
+    #             other_winning_bids_value = sum([bid.get_valuation() for bid in other_winning_bids])
+    #
+    #             value_difference = winning_bids_value - other_winning_bids_value - 1
+    #             reachable_valuation = alt_winning_bids_value + value_difference
+    #
+    #             if max_reachable_valuation is None or reachable_valuation > max_reachable_valuation:
+    #                 max_reachable_valuation = reachable_valuation
+    #
+    #                 destruction_bid = Bid(bundle=bid.get_bundle(),
+    #                                       valuation=bid.get_valuation() + value_difference,
+    #                                       carrier_id=player_id)
+    #
+    #                 if max_reachable_valuation >= (winning_bids_value - 1):
+    #                     break
+    #
+    #         if destruction_bid is not None:
+    #             destruction_bids.append(destruction_bid)
+    #
+    #     return destruction_bids
+
+    @staticmethod
     def __gen_bid_kickout(player_id, other_player_ids, input_bids, winning_bids, determinator):
 
         winning_bids_value = sum([bid.get_valuation() for bid in winning_bids])
         input_bids_value = sum([bid.get_valuation() for bid in input_bids])
         collaboration_gain = winning_bids_value - input_bids_value
-        current_share = PaymentCalculator.calculate_egalitarian_share(player_id=player_id, input_bids=input_bids,
+        current_share = PaymentCalculator.calculate_egalitarian_share(carrier_id=player_id, input_bids=input_bids,
                                                                       winning_bids=winning_bids, requires_contribution=True)
 
         max_collaboration_share_gain = (0.5 - current_share) * collaboration_gain
@@ -145,15 +294,20 @@ class ConspiringBidder:
 
         for o_player_id in other_player_ids:
             o_input_bid = next(bid for bid in input_bids if bid.get_carrier_id() == o_player_id)
-            tried_bids = []
+            input_bid = next(bid for bid in input_bids if bid.get_carrier_id() == player_id)
+            tried_bids = [input_bid]
 
             while True:
 
                 alt_winning_bids = determinator.determine_winners(enforced_bids=[o_input_bid],
                                                                   forbidden_bids=tried_bids)
+
+                if alt_winning_bids is None:
+                    continue
+
                 alt_winning_bids_value = sum([bid.get_valuation() for bid in alt_winning_bids])
 
-                new_share = PaymentCalculator.calculate_egalitarian_share(player_id=player_id, input_bids=input_bids,
+                new_share = PaymentCalculator.calculate_egalitarian_share(carrier_id=player_id, input_bids=input_bids,
                                                                           winning_bids=alt_winning_bids,
                                                                           requires_contribution=True)
 
@@ -170,7 +324,7 @@ class ConspiringBidder:
                         best_marginal_gain_found = marginal_gain
                         kickout_bid = Bid(bundle=player_winner_bid.get_bundle(),
                                           valuation=player_winner_bid.get_valuation() + value_difference,
-                                          player_id=player_id)
+                                          carrier_id=player_id)
                         winning_bids = [kickout_bid if bid == player_winner_bid else bid for bid in alt_winning_bids]
                         break
 
@@ -197,6 +351,14 @@ class ConspiringBidder:
             return input_bids, bundle_bids
 
     @staticmethod
+    def play_win_low(player_id, input_bids, winning_bids, bundle_bids, determinator):
+        input_bid = next(bid for bid in input_bids if bid.get_carrier_id() == player_id)
+        winning_bids_value = sum([bid.get_valuation() for bid in winning_bids])
+        new_bundle_bids = ConspiringBidder.__gen_winning_bids_low(bundle_bids, input_bid, winning_bids_value, determinator)
+        return new_bundle_bids
+
+
+    @staticmethod
     def play_input_enter(player_id, input_bids, winning_bids, bundle_bids, determinator):
         winning_bids_value = sum([bid.get_valuation() for bid in winning_bids])
         input_bids_value = sum([bid.get_valuation() for bid in input_bids])
@@ -204,7 +366,7 @@ class ConspiringBidder:
         if winning_bids_value <= input_bids_value:
             return input_bids, winning_bids, bundle_bids
 
-        current_share = PaymentCalculator.calculate_egalitarian_share(player_id=player_id, input_bids=input_bids,
+        current_share = PaymentCalculator.calculate_egalitarian_share(carrier_id=player_id, input_bids=input_bids,
                                                                       winning_bids=winning_bids,
                                                                       requires_contribution=True)
         if current_share > 0:
@@ -232,7 +394,7 @@ class ConspiringBidder:
         if winning_bids_value <= input_bids_value:
             return winning_bids, bundle_bids
 
-        current_share = PaymentCalculator.calculate_egalitarian_share(player_id=player_id, input_bids=input_bids,
+        current_share = PaymentCalculator.calculate_egalitarian_share(carrier_id=player_id, input_bids=input_bids,
                                                                       winning_bids=winning_bids,
                                                                       requires_contribution=True)
         if current_share >= 0.5:
@@ -251,6 +413,31 @@ class ConspiringBidder:
 
     @staticmethod
     def play_bids_destroy(player_id, other_player_ids, input_bids, winning_bids, bundle_bids, determinator):
+        winning_bids_value = sum([bid.get_valuation() for bid in winning_bids])
+        input_bids_value = sum([bid.get_valuation() for bid in input_bids])
+
+        if winning_bids_value <= input_bids_value:
+            return bundle_bids
+
+        destruction_bids = ConspiringBidder.__gen_bids_destroy(player_id=player_id,
+                                                               other_player_ids=other_player_ids,
+                                                               input_bids=input_bids,
+                                                               winning_bids=winning_bids,
+                                                               determinator=determinator,
+                                                               bundle_bids=bundle_bids)
+        if destruction_bids:
+
+            new_bundle_bids = bundle_bids
+            for bid in destruction_bids:
+                new_bundle_bids = ConspiringBidder.__exchange_bid(bundle_bids=new_bundle_bids, new_bid=bid)
+
+            return new_bundle_bids
+
+        else:
+            return bundle_bids
+
+    @staticmethod
+    def play_bid_contribute(player_id, other_player_ids, input_bids, winning_bids, bundle_bids, determinator):
         winning_bids_value = sum([bid.get_valuation() for bid in winning_bids])
         input_bids_value = sum([bid.get_valuation() for bid in input_bids])
 
@@ -309,6 +496,10 @@ class ConspiringBidder:
                                                                       winning_bids=winning_bids,
                                                                       bundle_bids=bundle_bids,
                                                                       determinator=determinator)
+
+        if ConspiringStrategy.WIN_LOW in strategies:
+            bundle_bids = ConspiringBidder.play_win_low(player_id=player_id, winning_bids=winning_bids, input_bids=input_bids,
+                                                        bundle_bids=bundle_bids, determinator=determinator)
 
         if ConspiringStrategy.INPUT_ENTER in strategies:
             input_bids, winning_bids, bundle_bids = ConspiringBidder.play_input_enter(player_id=player_id,

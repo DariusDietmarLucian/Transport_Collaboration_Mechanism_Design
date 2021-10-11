@@ -1,5 +1,6 @@
 from Mechanism.Request_Selection.RequestSelector import RequestSelector
 from Mechanism.Bidding.Strategic_Bidding.StrategicBidder import StrategicBidder
+from Mechanism.Bidding.Strategic_Bidding.BiddingStrategy import BiddingStrategy
 from Mechanism.Bidding.Conspiring_Bidding.ConspiringBidder import ConspiringBidder
 from Participants.Carrier.Profitability import Profitability
 
@@ -32,7 +33,7 @@ class Carrier:
 
         self.__set_up()
 
-    # player should figure out the routing solution and the max capacity from the start
+    # carrier should figure out the routing solution and the max capacity from the start
     def __set_up(self):
         self.current_routing_solution = self.get_current_routing_solution()
         self.max_capacity = self.get_max_capacity()
@@ -118,6 +119,7 @@ class Carrier:
     """
 
     def __calc_marginal_profit(self, requests, deletion):
+
         if len(requests) == 0:
             return 0
 
@@ -203,10 +205,14 @@ class Carrier:
 
     def submit_conspired_bids(self, input_bids, bundles, bid_matrix, profit_sharing_strategy):
 
+        if self.configuration.strategic_bidder_configuration.strategy is not BiddingStrategy.CONSPIRING:
+            return None, None
+
         conspiring_bidder = self.get_conspiring_bidder()
         input_bid, bundle_bids = conspiring_bidder.get_conspired_bids(input_bids=input_bids, bundles=bundles,
                                                                       bid_matrix=bid_matrix,
                                                                       profit_sharing_strategy=profit_sharing_strategy)
+
         return input_bid, bundle_bids
 
     def receive_requests(self, requests):

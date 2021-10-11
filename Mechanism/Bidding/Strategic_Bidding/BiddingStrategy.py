@@ -6,3 +6,4 @@ class BiddingStrategy(enum.Enum):
     HIGH_ABS = 3
     BID_MANIPULATION_REL = 4
     CONSPIRING = 5
+    HIGH_ABS_ISO = 6

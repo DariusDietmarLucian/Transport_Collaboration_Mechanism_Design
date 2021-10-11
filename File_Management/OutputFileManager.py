@@ -56,13 +56,15 @@ class OutputFileManager:
         if strategy == ConspiringStrategy.AUTO_COMBO:
             return "AUTO"
         elif strategy == ConspiringStrategy.DESTROY_WEIGHT:
-            return "DESTROY_WEIGHT"
+            return "BID_MAX"
         elif strategy == ConspiringStrategy.BID_KICKOUT:
             return "BID_KICKOUT"
         elif strategy == ConspiringStrategy.INPUT_ENTER:
             return "INPUT_ENTER"
         elif strategy == ConspiringStrategy.INPUT_MAX:
             return "INPUT_MAX"
+        elif strategy == ConspiringStrategy.WIN_LOW:
+            return "WIN_LOW"
 
     @staticmethod
     def __extend_path(path, extension):
@@ -145,11 +147,13 @@ class OutputFileManager:
         elif strategy == BiddingStrategy.INPUT_MANIPULATION:
             return f"INPUT_MANIPULATION_{strategic_bidder_configuration.input_bid_percentage}"
         elif strategy == BiddingStrategy.HIGH_ABS:
-            return f"HIGH_ABS_{strategic_bidder_configuration.all_bid_margin_input_value}"
+            return f"HIGH_ABS_{strategic_bidder_configuration.input_bid_multiple}"
         elif strategy == BiddingStrategy.BID_MANIPULATION_REL:
             return f"BID_MANIPULATION_REL_{strategic_bidder_configuration.relative_margin}"
         elif strategy == BiddingStrategy.CONSPIRING:
             return "CONSPIRING"
+        elif strategy == BiddingStrategy.HIGH_ABS_ISO:
+            return f"ABS_INPUT_MANIPULATION_{strategic_bidder_configuration.input_bid_multiple}"
 
     @staticmethod
     def __translate_conspiring_type(conspiring_bidder_configuration):
@@ -204,7 +208,7 @@ class OutputFileManager:
             conspiring_type = self.__translate_conspiring_type(
                 conspiring_bidder_configuration=p_config.conspiring_bidder_configuration)
 
-            self.__extend_path(path=path, extension=conspiring_type)
+            path = self.__extend_path(path=path, extension=conspiring_type)
 
         today = date.today()
         time_date = today.strftime("%d-%m-%Y")

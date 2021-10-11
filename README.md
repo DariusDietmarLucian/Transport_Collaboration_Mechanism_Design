@@ -234,15 +234,14 @@ rm_config = RoutingManagerConfiguration(solution_strategy=SolutionStrategy.DOUBL
 #### Mechanism Manager
 1) Number of requests traded each round for each carrier
 2) Number of retries if no improvement can be found after a round
-3) Boolean indicating whether the carrier (c-config) is conspiring (**needs to be set True if the carrier should be able to use conspiring bidding strategies!**)
-4) Payment Calculation configuration (see above)
-5) Bundle Generation configuration (see above)
+3) Payment Calculation configuration (see above)
+4) Bundle Generation configuration (see above)
 
 *Example*
 ```{python}
 from Participants.Mechanism_Manager.MechanismManagerConfiguration import MechanismManagerConfiguration
 
-mm_config = MechanismManagerConfiguration(num_requests=3, num_retries=2, is_conspiring=True, payment_calculator_configuration=pc_config, bundle_generator_configuration=bg_config)
+mm_config = MechanismManagerConfiguration(num_requests=3, num_retries=2, payment_calculator_configuration=pc_config, bundle_generator_configuration=bg_config)
 ```
 
 #### Carrier

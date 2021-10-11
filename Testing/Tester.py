@@ -3,6 +3,8 @@ from File_Management.OutputFileManager import OutputFileManager
 from Participants.ParticipantsFactory import ParticipantsFactory
 import time
 import config
+import random
+import numpy as np
 
 
 class Tester:
@@ -107,12 +109,27 @@ class Tester:
         total_new = sum([value for values in new_values for value in values])
         return total_new / total_old
 
+    def __reset(self):
+        self.iterations = []
+        self.computation_times = []
+
+        self.old_distances = []
+        self.old_profits = []
+        self.old_routes = []
+
+        self.new_distances = []
+        self.new_profits = []
+        self.new_routes = []
+
     def __run(self, all_participants):
 
         run_index = 0
+        self.__reset()
 
         for i in range(len(all_participants)):
             print(f"run = {run_index}")
+            random.seed(42)
+            np.random.seed(42)
 
             mechanism_manager = all_participants[i][0]
             carriers = all_participants[i][1]
